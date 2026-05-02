@@ -226,6 +226,21 @@
     .btn-minus { background: linear-gradient(135deg, #fc8181, #9b2c2c); color: #fff; box-shadow: 0 6px 20px rgba(252,129,129,0.35); }
     .btn-reset { background: linear-gradient(135deg, #667eea, #4c51bf); color: #fff; box-shadow: 0 6px 20px rgba(102,126,234,0.35); font-size: 0.8rem; }
 
+    /* ── Tally windows ── */
+    .btn-group { display: flex; flex-direction: column; align-items: center; gap: 7px; }
+    .tally {
+      width: 100%;
+      text-align: center;
+      padding: 5px 10px;
+      border-radius: 10px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      backdrop-filter: blur(6px);
+    }
+    .tally-add   { background: rgba(72,187,120,0.12); border: 1px solid rgba(72,187,120,0.25); color: #68d391; }
+    .tally-minus { background: rgba(252,129,129,0.12); border: 1px solid rgba(252,129,129,0.25); color: #fc8181; }
+
     /* ── Pokémon Characters ── */
     .pokemon-row {
       width: 100%;
@@ -364,8 +379,14 @@
   </div>
 
   <div class="btn-row">
-    <button class="btn btn-add"   onclick="adjust(+1)">＋ Add Day</button>
-    <button class="btn btn-minus" onclick="adjust(-1)">－ Minus Day</button>
+    <div class="btn-group">
+      <button class="btn btn-add" onclick="adjust(+1)">＋ Add Day</button>
+      <div class="tally tally-add" id="tally-add">＋0 days</div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-minus" onclick="adjust(-1)">－ Minus Day</button>
+      <div class="tally tally-minus" id="tally-minus">－0 days</div>
+    </div>
   </div>
   <div class="btn-row" style="grid-template-columns: 1fr; margin-bottom: 14px; margin-top: -4px;">
     <button class="btn btn-reset" onclick="reset()">↺ Reset to 7 Days</button>
@@ -484,6 +505,13 @@
 </div>
 <script>
   const DEFAULT_DAYS = 7;
+  let daysAdded  = parseInt(localStorage.getItem('daysAdded')  || '0');
+  let daysMinus  = parseInt(localStorage.getItem('daysMinus')  || '0');
+
+  function updateTallies() {
+    document.getElementById('tally-add').textContent   = `＋${daysAdded} day${daysAdded  !== 1 ? 's' : ''}`;
+    document.getElementById('tally-minus').textContent = `－${daysMinus} day${daysMinus !== 1 ? 's' : ''}`;
+  }
 
   function todayISO() {
     const d = new Date();
@@ -535,21 +563,28 @@
   }
 
   function reset() {
+    daysAdded = 0; daysMinus = 0;
+    localStorage.setItem('daysAdded', '0');
+    localStorage.setItem('daysMinus', '0');
     setHash(shiftISO(todayISO(), DEFAULT_DAYS));
     const el = document.getElementById('kpi-number');
     el.classList.remove('bump');
     void el.offsetWidth;
     el.classList.add('bump');
     render();
+    updateTallies();
   }
 
   function adjust(delta) {
+    if (delta > 0) { daysAdded += delta; localStorage.setItem('daysAdded', daysAdded); }
+    else           { daysMinus -= delta; localStorage.setItem('daysMinus', daysMinus); }
     setHash(shiftISO(getOrInitEnd(), delta));
     const el = document.getElementById('kpi-number');
     el.classList.remove('bump');
     void el.offsetWidth;
     el.classList.add('bump');
     render();
+    updateTallies();
   }
 
   function copyURL() {
@@ -561,6 +596,7 @@
   }
 
   render();
+  updateTallies();
   window.addEventListener('hashchange', render);
 </script>
 </body>
