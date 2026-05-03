@@ -544,10 +544,12 @@
   }
   function setHash(endDate) {
     history.replaceState(null, '', `#end=${endDate}`);
+    localStorage.setItem('endDate', endDate);
   }
   function getOrInitEnd() {
-    let end = getHash();
-    if (!end) { end = shiftISO(todayISO(), DEFAULT_DAYS); setHash(end); }
+    let end = getHash() || localStorage.getItem('endDate');
+    if (!end) { end = shiftISO(todayISO(), DEFAULT_DAYS); }
+    setHash(end);
     return end;
   }
 
